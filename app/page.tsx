@@ -1,39 +1,6 @@
 import Link from "next/link";
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-
-async function getSupabaseHealth(): Promise<{
-  ok: boolean;
-  detail: string;
-}> {
-  try {
-    const supabase = await createServerSupabaseClient();
-    const { error } = await supabase.from("profiles").select("id").limit(1);
-
-    if (error) {
-      return {
-        ok: false,
-        detail: `${error.message}${error.hint ? ` (${error.hint})` : ""}`,
-      };
-    }
-
-    return {
-      ok: true,
-      detail:
-        "Server client reached your project and `profiles` query completed without error.",
-    };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return {
-      ok: false,
-      detail: message,
-    };
-  }
-}
-
-export default async function Home() {
-  const supabaseHealth = await getSupabaseHealth();
-
+export default function Home() {
   return (
     <div className="flex flex-1 flex-col bg-background text-foreground">
       <header className="border-b border-black/10 dark:border-white/15">
@@ -88,26 +55,6 @@ export default async function Home() {
               >
                 Go to dashboard
               </Link>
-            </div>
-
-            <div
-              className={`rounded-lg border p-4 text-sm ${
-                supabaseHealth.ok
-                  ? "border-emerald-600/30 bg-emerald-600/[0.06] dark:border-emerald-500/35 dark:bg-emerald-500/10"
-                  : "border-red-600/35 bg-red-600/[0.06] dark:border-red-500/40 dark:bg-red-500/10"
-              }`}
-            >
-              <div className="text-xs font-semibold uppercase tracking-wide text-black/60 dark:text-white/60">
-                Supabase check
-              </div>
-              <p className="mt-1 font-medium text-foreground">
-                {supabaseHealth.ok
-                  ? "Connected"
-                  : "Something went wrong"}
-              </p>
-              <p className="mt-1 text-xs leading-5 text-black/70 dark:text-white/70">
-                {supabaseHealth.detail}
-              </p>
             </div>
 
             <div className="rounded-lg border border-black/10 bg-black/[0.02] p-4 dark:border-white/15 dark:bg-white/[0.04]">
