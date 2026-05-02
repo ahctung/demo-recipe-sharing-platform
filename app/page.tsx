@@ -10,12 +10,6 @@ export default function Home() {
           </Link>
           <nav className="flex items-center gap-2">
             <Link
-              href="/recipes"
-              className="rounded-md px-3 py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10"
-            >
-              Browse
-            </Link>
-            <Link
               href="/auth/login"
               className="rounded-md px-3 py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10"
             >
@@ -44,42 +38,11 @@ export default function Home() {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
-                href="/recipes"
-                className="inline-flex h-11 items-center justify-center rounded-md bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
-              >
-                Browse recipes
-              </Link>
-              <Link
                 href="/dashboard"
                 className="inline-flex h-11 items-center justify-center rounded-md border border-black/15 px-5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
               >
                 Go to dashboard
               </Link>
-            </div>
-
-            <div className="rounded-lg border border-black/10 bg-black/[0.02] p-4 dark:border-white/15 dark:bg-white/[0.04]">
-              <label
-                htmlFor="home-search"
-                className="text-xs font-medium text-black/70 dark:text-white/70"
-              >
-                Search (coming next)
-              </label>
-              <div className="mt-2 flex gap-2">
-                <input
-                  id="home-search"
-                  name="q"
-                  placeholder="Try “chicken”, “pasta”, “gluten free”…"
-                  className="h-11 w-full rounded-md border border-black/10 bg-background px-3 text-sm outline-none placeholder:text-black/40 focus:ring-2 focus:ring-black/20 dark:border-white/15 dark:placeholder:text-white/40 dark:focus:ring-white/20"
-                  disabled
-                />
-                <button
-                  type="button"
-                  className="h-11 shrink-0 rounded-md bg-black/10 px-4 text-sm font-medium text-black/60 dark:bg-white/10 dark:text-white/60"
-                  disabled
-                >
-                  Search
-                </button>
-              </div>
             </div>
           </div>
 
