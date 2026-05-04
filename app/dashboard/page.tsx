@@ -1,9 +1,20 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ensureProfileForUser } from "@/lib/profiles";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const createdId =
+    typeof sp.created === "string" && sp.created.length > 0
+      ? sp.created
+      : null;
+
   const supabase = await createServerSupabaseClient();
   const { data } = await supabase.auth.getUser();
 
@@ -48,11 +59,23 @@ export default async function DashboardPage() {
         ) : null}
       </div>
 
-      <div className="mt-10 max-w-md">
+      {createdId ? (
+        <p className="mt-6 max-w-md rounded-md border border-emerald-600/30 bg-emerald-600/[0.06] px-4 py-3 text-sm text-emerald-800 dark:text-emerald-200">
+          Recipe saved. (Id: <span className="font-mono">{createdId}</span>)
+        </p>
+      ) : null}
+
+      <div className="mt-10 max-w-md space-y-4">
+        <Link
+          href="/dashboard/recipes/new"
+          className="inline-flex h-11 items-center justify-center rounded-md bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+        >
+          Create new recipe
+        </Link>
         <div className="rounded-xl border border-black/10 bg-background p-5 dark:border-white/15">
           <div className="text-sm font-medium">My recipes</div>
           <div className="mt-1 text-sm text-black/60 dark:text-white/60">
-            Coming next: create, edit, delete.
+            List and edit coming next.
           </div>
         </div>
       </div>
