@@ -1,5 +1,5 @@
 import { signupAction } from "@/app/auth/actions";
-import { AuthForm } from "@/app/auth/_components/AuthForm";
+import { AuthForm } from "@/components/AuthForm";
 
 export default async function SignupPage({
   searchParams,
