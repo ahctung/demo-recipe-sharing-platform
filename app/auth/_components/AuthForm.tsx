@@ -33,13 +33,7 @@ export function AuthForm({
     <div className="flex flex-1 items-center justify-center px-6 py-14">
       <main className="w-full max-w-md">
         <div className="mb-6">
-          <Link
-            href="/"
-            className="text-sm font-semibold tracking-tight hover:opacity-80"
-          >
-            RecipeShare
-          </Link>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight">{title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           <p className="mt-1 text-sm text-black/60 dark:text-white/60">
             {description}
           </p>

@@ -3,28 +3,6 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col bg-background text-foreground">
-      <header className="border-b border-black/10 dark:border-white/15">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-4">
-          <Link href="/" className="text-sm font-semibold tracking-tight">
-            RecipeShare
-          </Link>
-          <nav className="flex items-center gap-2">
-            <Link
-              href="/auth/login"
-              className="rounded-md px-3 py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/auth/signup"
-              className="rounded-md bg-foreground px-3 py-2 text-sm font-medium text-background hover:opacity-90"
-            >
-              Sign up
-            </Link>
-          </nav>
-        </div>
-      </header>
-
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-14">
         <section className="grid gap-10 lg:grid-cols-2 lg:items-center">
           <div className="space-y-5">
