@@ -4,15 +4,17 @@ import { redirect } from "next/navigation";
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-export async function createRecipeAction(formData: FormData) {
-  const supabase = await createServerSupabaseClient();
-  const { data: authData } = await supabase.auth.getUser();
-  const user = authData.user;
+type ParsedRecipe = {
+  title: string;
+  description: string | null;
+  category: string;
+  cook_time_minutes: number | null;
+  difficulty: string | null;
+  ingredients: string[];
+  instructions: string[];
+};
 
-  if (!user) {
-    redirect("/auth/login");
-  }
-
+function parseRecipeFromFormData(formData: FormData): ParsedRecipe {
   const title = String(formData.get("title") ?? "").trim();
   const descriptionRaw = String(formData.get("description") ?? "").trim();
   const description = descriptionRaw === "" ? null : descriptionRaw;
@@ -40,38 +42,60 @@ export async function createRecipeAction(formData: FormData) {
     .map((s) => String(s).trim())
     .filter(Boolean);
 
-  if (!title) {
-    redirect(
-      `/dashboard/recipes/new?error=${encodeURIComponent("Title is required.")}`,
-    );
+  return {
+    title,
+    description,
+    category,
+    cook_time_minutes,
+    difficulty,
+    ingredients,
+    instructions,
+  };
+}
+
+function assertValidRecipe(
+  parsed: ParsedRecipe,
+  errorRedirect: (msg: string) => void,
+) {
+  if (!parsed.title) {
+    errorRedirect("Title is required.");
   }
-  if (!category) {
-    redirect(
-      `/dashboard/recipes/new?error=${encodeURIComponent("Category is required.")}`,
-    );
+  if (!parsed.category) {
+    errorRedirect("Category is required.");
   }
-  if (ingredients.length === 0) {
-    redirect(
-      `/dashboard/recipes/new?error=${encodeURIComponent("Add at least one ingredient.")}`,
-    );
+  if (parsed.ingredients.length === 0) {
+    errorRedirect("Add at least one ingredient.");
   }
-  if (instructions.length === 0) {
-    redirect(
-      `/dashboard/recipes/new?error=${encodeURIComponent("Add at least one instruction step.")}`,
-    );
+  if (parsed.instructions.length === 0) {
+    errorRedirect("Add at least one instruction step.");
   }
+}
+
+export async function createRecipeAction(formData: FormData) {
+  const supabase = await createServerSupabaseClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const user = authData.user;
+
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  const parsed = parseRecipeFromFormData(formData);
+  assertValidRecipe(parsed, (msg) =>
+    redirect(`/dashboard/recipes/new?error=${encodeURIComponent(msg)}`),
+  );
 
   const { data: inserted, error } = await supabase
     .from("recipes")
     .insert({
       user_id: user.id,
-      title,
-      description,
-      category,
-      cook_time_minutes,
-      difficulty,
-      ingredients,
-      instructions,
+      title: parsed.title,
+      description: parsed.description,
+      category: parsed.category,
+      cook_time_minutes: parsed.cook_time_minutes,
+      difficulty: parsed.difficulty,
+      ingredients: parsed.ingredients,
+      instructions: parsed.instructions,
     })
     .select("id")
     .single();
@@ -83,4 +107,55 @@ export async function createRecipeAction(formData: FormData) {
   }
 
   redirect(`/dashboard?created=${inserted?.id ?? "1"}`);
+}
+
+export async function updateRecipeAction(
+  recipeId: string,
+  formData: FormData,
+) {
+  const supabase = await createServerSupabaseClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const user = authData.user;
+
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  const parsed = parseRecipeFromFormData(formData);
+  assertValidRecipe(parsed, (msg) =>
+    redirect(
+      `/dashboard/recipes/${recipeId}?error=${encodeURIComponent(msg)}`,
+    ),
+  );
+
+  const { data: updated, error } = await supabase
+    .from("recipes")
+    .update({
+      title: parsed.title,
+      description: parsed.description,
+      category: parsed.category,
+      cook_time_minutes: parsed.cook_time_minutes,
+      difficulty: parsed.difficulty,
+      ingredients: parsed.ingredients,
+      instructions: parsed.instructions,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", recipeId)
+    .eq("user_id", user.id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    redirect(
+      `/dashboard/recipes/${recipeId}?error=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+  if (!updated) {
+    redirect(
+      `/dashboard/recipes/${recipeId}?error=${encodeURIComponent("Recipe not found or you do not have access.")}`,
+    );
+  }
+
+  redirect(`/dashboard/recipes/${recipeId}?success=1`);
 }

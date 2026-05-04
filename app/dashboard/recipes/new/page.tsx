@@ -26,7 +26,7 @@ export default async function NewRecipePage({
           {error}
         </div>
       ) : null}
-      <RecipeForm action={createRecipeAction} />
+      <RecipeForm mode="create" action={createRecipeAction} />
     </div>
   );
 }
