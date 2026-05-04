@@ -15,6 +15,10 @@ export default async function DashboardPage({
     typeof sp.created === "string" && sp.created.length > 0
       ? sp.created
       : null;
+  const qRaw = typeof sp.q === "string" ? sp.q : "";
+  const q = qRaw.trim();
+  const categoryRaw = typeof sp.category === "string" ? sp.category : "";
+  const category = categoryRaw.trim();
 
   const supabase = await createServerSupabaseClient();
   const { data } = await supabase.auth.getUser();
@@ -28,10 +32,34 @@ export default async function DashboardPage({
     data.user,
   );
 
-  const { data: recipeRows, error: recipesError } = await supabase
+  let recipesQuery = supabase
     .from("recipes")
-    .select("id, title, cook_time_minutes, difficulty, profiles(username)")
+    .select(
+      "id, title, category, cook_time_minutes, difficulty, profiles(username)",
+    )
     .order("created_at", { ascending: false });
+
+  if (category) {
+    recipesQuery = recipesQuery.eq("category", category);
+  }
+
+  if (q) {
+    const escaped = q.replaceAll(",", "\\,");
+    recipesQuery = recipesQuery.or(
+      `title.ilike.%${escaped}%,category.ilike.%${escaped}%`,
+    );
+  }
+
+  const { data: recipeRows, error: recipesError } = await recipesQuery;
+
+  const categories = Array.from(
+    new Set(
+      (recipeRows ?? [])
+        .map((row) => (row as unknown as { category?: string | null }).category)
+        .filter((c): c is string => typeof c === "string" && c.trim().length > 0)
+        .map((c) => c.trim()),
+    ),
+  ).sort((a, b) => a.localeCompare(b));
 
   const recipes = (recipeRows ?? []).map((row) => {
     const r = row as unknown as {
@@ -97,12 +125,48 @@ export default async function DashboardPage({
               Recipes created by everyone.
             </p>
           </div>
-          <Link
-            href="/dashboard/recipes/new"
-            className="inline-flex h-11 shrink-0 items-center justify-center rounded-md bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
-          >
-            Create new recipe
-          </Link>
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+            <form action="/dashboard" className="flex items-center gap-2">
+              <input
+                name="q"
+                defaultValue={qRaw}
+                placeholder="Search recipes…"
+                className="h-11 w-full rounded-md border border-black/10 bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-black/20 sm:w-64 dark:border-white/15 dark:focus:ring-white/20"
+              />
+              <select
+                name="category"
+                defaultValue={categoryRaw}
+                className="h-11 rounded-md border border-black/10 bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-black/20 dark:border-white/15 dark:focus:ring-white/20"
+              >
+                <option value="">All categories</option>
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                className="inline-flex h-11 shrink-0 items-center justify-center rounded-md border border-black/15 px-4 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+              >
+                Search
+              </button>
+              {q || category ? (
+                <Link
+                  href="/dashboard"
+                  className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
+                >
+                  Clear
+                </Link>
+              ) : null}
+            </form>
+            <Link
+              href="/dashboard/recipes/new"
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-md bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+            >
+              Create new recipe
+            </Link>
+          </div>
         </div>
 
         {recipesError ? (
@@ -111,7 +175,9 @@ export default async function DashboardPage({
           </p>
         ) : recipes.length === 0 ? (
           <p className="rounded-xl border border-dashed border-black/15 px-4 py-8 text-center text-sm text-black/60 dark:border-white/20 dark:text-white/60">
-            No recipes yet. Create the first one with the button above.
+            {q || category
+              ? "No recipes found for the current filters."
+              : "No recipes yet. Create the first one with the button above."}
           </p>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
