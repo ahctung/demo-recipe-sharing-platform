@@ -17,6 +17,7 @@ type Props = {
   action: (formData: FormData) => void | Promise<void>;
   mode?: "create" | "edit" | "display";
   initialValues?: RecipeFormInitialValues;
+  creatorUsername?: string | null;
 };
 
 function nonEmptyLines(lines: string[] | undefined, fallback: string[]) {
@@ -59,6 +60,7 @@ export function RecipeForm({
   action,
   mode = "create",
   initialValues,
+  creatorUsername = null,
 }: Props) {
   const isDisplayMode = mode === "display";
   const [isEditing, setIsEditing] = useState(() => !isDisplayMode);
@@ -160,6 +162,14 @@ export function RecipeForm({
         <p className="text-sm text-black/60 dark:text-white/60">
           {headingSubtitle}
         </p>
+        {creatorUsername ? (
+          <p className="text-sm text-black/60 dark:text-white/60">
+            Created by{" "}
+            <span className="font-medium text-foreground">
+              @{creatorUsername}
+            </span>
+          </p>
+        ) : null}
       </div>
 
       {showReadOnlyShell && v ? (

@@ -26,9 +26,8 @@ export default async function RecipeDetailEditPage({
 
   const { data: row, error: fetchError } = await supabase
     .from("recipes")
-    .select("*")
+    .select("*, profiles(username)")
     .eq("id", id)
-    .eq("user_id", authData.user.id)
     .maybeSingle();
 
   if (fetchError || !row) {
@@ -36,6 +35,12 @@ export default async function RecipeDetailEditPage({
   }
 
   const recipe = row as Recipe;
+  const creatorUsername =
+    (
+      row as unknown as {
+        profiles?: { username: string } | null;
+      }
+    ).profiles?.username ?? null;
 
   const initialValues: RecipeFormInitialValues = {
     title: recipe.title,
@@ -63,6 +68,7 @@ export default async function RecipeDetailEditPage({
         key={`${recipe.id}-${recipe.updated_at}`}
         mode="display"
         initialValues={initialValues}
+        creatorUsername={creatorUsername}
         action={updateRecipeAction.bind(null, recipe.id)}
       />
     </div>

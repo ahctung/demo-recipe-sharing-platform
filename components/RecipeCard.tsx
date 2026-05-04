@@ -25,6 +25,7 @@ export type RecipeCardRecipe = {
   title: string;
   cook_time_minutes: number | null;
   difficulty: string | null;
+  creator_username?: string | null;
 };
 
 type Props = {
@@ -41,6 +42,14 @@ export function RecipeCard({ recipe }: Props) {
         <h2 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-foreground">
           {recipe.title}
         </h2>
+        {recipe.creator_username ? (
+          <p className="mt-1 text-xs text-black/60 dark:text-white/60">
+            Created by{" "}
+            <span className="font-medium text-foreground">
+              @{recipe.creator_username}
+            </span>
+          </p>
+        ) : null}
         <dl className="mt-3 grid gap-2 text-sm text-black/65 dark:text-white/65">
           <div className="flex items-center justify-between gap-2">
             <dt className="text-black/50 dark:text-white/50">Time</dt>

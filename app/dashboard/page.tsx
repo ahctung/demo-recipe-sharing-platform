@@ -30,11 +30,26 @@ export default async function DashboardPage({
 
   const { data: recipeRows, error: recipesError } = await supabase
     .from("recipes")
-    .select("id, title, cook_time_minutes, difficulty")
-    .eq("user_id", data.user.id)
+    .select("id, title, cook_time_minutes, difficulty, profiles(username)")
     .order("created_at", { ascending: false });
 
-  const myRecipes = (recipeRows ?? []) as RecipeCardRecipe[];
+  const recipes = (recipeRows ?? []).map((row) => {
+    const r = row as unknown as {
+      id: string;
+      title: string;
+      cook_time_minutes: number | null;
+      difficulty: string | null;
+      profiles?: { username: string } | null;
+    };
+
+    return {
+      id: r.id,
+      title: r.title,
+      cook_time_minutes: r.cook_time_minutes,
+      difficulty: r.difficulty,
+      creator_username: r.profiles?.username ?? null,
+    } satisfies RecipeCardRecipe;
+  });
 
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-14">
@@ -77,9 +92,9 @@ export default async function DashboardPage({
       <section className="mt-10 space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">My recipes</h2>
+            <h2 className="text-lg font-semibold tracking-tight">All recipes</h2>
             <p className="mt-0.5 text-sm text-black/60 dark:text-white/60">
-              Recipes you have created.
+              Recipes created by everyone.
             </p>
           </div>
           <Link
@@ -94,13 +109,13 @@ export default async function DashboardPage({
           <p className="text-sm text-red-700 dark:text-red-200">
             Could not load recipes: {recipesError.message}
           </p>
-        ) : myRecipes.length === 0 ? (
+        ) : recipes.length === 0 ? (
           <p className="rounded-xl border border-dashed border-black/15 px-4 py-8 text-center text-sm text-black/60 dark:border-white/20 dark:text-white/60">
-            No recipes yet. Create your first one with the button above.
+            No recipes yet. Create the first one with the button above.
           </p>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {myRecipes.map((recipe) => (
+            {recipes.map((recipe) => (
               <li key={recipe.id}>
                 <RecipeCard recipe={recipe} />
               </li>
