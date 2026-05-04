@@ -2,6 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { ensureProfileForUser } from "@/lib/profiles";
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
@@ -31,6 +33,11 @@ export async function GET(request: Request) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
     return NextResponse.redirect(new URL("/auth/login?error=auth", url.origin));
+  }
+
+  const { data: userData } = await supabase.auth.getUser();
+  if (userData.user) {
+    await ensureProfileForUser(supabase, userData.user);
   }
 
   return NextResponse.redirect(new URL(next, url.origin));

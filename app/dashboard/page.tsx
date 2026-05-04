@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { logoutAction } from "@/app/auth/actions";
+import { ensureProfileForUser } from "@/lib/profiles";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
@@ -12,6 +12,11 @@ export default async function DashboardPage() {
     redirect("/auth/login");
   }
 
+  const { profile, error: profileError } = await ensureProfileForUser(
+    supabase,
+    data.user,
+  );
+
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-14">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
@@ -21,6 +26,28 @@ export default async function DashboardPage() {
             Signed in as{" "}
             <span className="font-medium text-foreground">{data.user.email}</span>
           </p>
+          {profile ? (
+            <dl className="mt-4 grid gap-2 text-sm">
+              <div className="flex flex-wrap gap-x-2">
+                <dt className="text-black/60 dark:text-white/60">Username</dt>
+                <dd className="font-medium text-foreground">{profile.username}</dd>
+              </div>
+              <div className="flex flex-wrap gap-x-2">
+                <dt className="text-black/60 dark:text-white/60">Full name</dt>
+                <dd className="font-medium text-foreground">{profile.full_name}</dd>
+              </div>
+              {profile.bio ? (
+                <div className="flex flex-col gap-1">
+                  <dt className="text-black/60 dark:text-white/60">Bio</dt>
+                  <dd className="text-foreground">{profile.bio}</dd>
+                </div>
+              ) : null}
+            </dl>
+          ) : profileError ? (
+            <p className="mt-4 text-sm text-red-700 dark:text-red-200">
+              Could not load profile: {profileError}
+            </p>
+          ) : null}
         </div>
 
         <form action={logoutAction}>
@@ -33,16 +60,7 @@ export default async function DashboardPage() {
         </form>
       </div>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2">
-        <Link
-          href="/recipes"
-          className="rounded-xl border border-black/10 bg-background p-5 hover:bg-black/[0.02] dark:border-white/15 dark:hover:bg-white/[0.04]"
-        >
-          <div className="text-sm font-medium">Browse recipes</div>
-          <div className="mt-1 text-sm text-black/60 dark:text-white/60">
-            Public feed (we’ll build this next).
-          </div>
-        </Link>
+      <div className="mt-10 max-w-md">
         <div className="rounded-xl border border-black/10 bg-background p-5 dark:border-white/15">
           <div className="text-sm font-medium">My recipes</div>
           <div className="mt-1 text-sm text-black/60 dark:text-white/60">
