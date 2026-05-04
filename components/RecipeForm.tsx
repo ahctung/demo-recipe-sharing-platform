@@ -18,6 +18,8 @@ type Props = {
   mode?: "create" | "edit" | "display";
   initialValues?: RecipeFormInitialValues;
   creatorUsername?: string | null;
+  allowEdit?: boolean;
+  deleteAction?: (formData: FormData) => void | Promise<void>;
 };
 
 function nonEmptyLines(lines: string[] | undefined, fallback: string[]) {
@@ -61,6 +63,8 @@ export function RecipeForm({
   mode = "create",
   initialValues,
   creatorUsername = null,
+  allowEdit = true,
+  deleteAction,
 }: Props) {
   const isDisplayMode = mode === "display";
   const [isEditing, setIsEditing] = useState(() => !isDisplayMode);
@@ -245,13 +249,30 @@ export function RecipeForm({
           </div>
 
           <div className="flex flex-wrap gap-3 border-t border-black/10 pt-5 dark:border-white/15">
-            <button
-              type="button"
-              onClick={enterEditMode}
-              className="inline-flex h-11 items-center justify-center rounded-md bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
-            >
-              Edit recipe
-            </button>
+            {allowEdit ? (
+              <button
+                type="button"
+                onClick={enterEditMode}
+                className="inline-flex h-11 items-center justify-center rounded-md bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+              >
+                Edit recipe
+              </button>
+            ) : null}
+            {allowEdit && deleteAction ? (
+              <form action={deleteAction}>
+                <button
+                  type="submit"
+                  onClick={(e) => {
+                    if (!confirm("Delete this recipe? This cannot be undone.")) {
+                      e.preventDefault();
+                    }
+                  }}
+                  className="inline-flex h-11 items-center justify-center rounded-md bg-red-600 px-5 text-sm font-medium text-white hover:bg-red-700"
+                >
+                  Delete recipe
+                </button>
+              </form>
+            ) : null}
             <Link
               href="/dashboard"
               className="inline-flex h-11 items-center justify-center rounded-md border border-black/15 px-5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"

@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 
-import { updateRecipeAction } from "@/app/dashboard/recipes/actions";
+import { deleteRecipeAction, updateRecipeAction } from "@/app/dashboard/recipes/actions";
 import { RecipeForm, type RecipeFormInitialValues } from "@/components/RecipeForm";
 import type { Recipe } from "@/lib/database.types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -41,6 +41,7 @@ export default async function RecipeDetailEditPage({
         profiles?: { username: string } | null;
       }
     ).profiles?.username ?? null;
+  const allowEdit = recipe.user_id === authData.user.id;
 
   const initialValues: RecipeFormInitialValues = {
     title: recipe.title,
@@ -69,7 +70,9 @@ export default async function RecipeDetailEditPage({
         mode="display"
         initialValues={initialValues}
         creatorUsername={creatorUsername}
+        allowEdit={allowEdit}
         action={updateRecipeAction.bind(null, recipe.id)}
+        deleteAction={deleteRecipeAction.bind(null, recipe.id)}
       />
     </div>
   );

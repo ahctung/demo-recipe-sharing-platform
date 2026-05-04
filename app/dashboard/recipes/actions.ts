@@ -159,3 +159,33 @@ export async function updateRecipeAction(
 
   redirect(`/dashboard/recipes/${recipeId}?success=1`);
 }
+
+export async function deleteRecipeAction(recipeId: string, _formData: FormData) {
+  const supabase = await createServerSupabaseClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const user = authData.user;
+
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  const { data: deleted, error } = await supabase
+    .from("recipes")
+    .delete()
+    .eq("id", recipeId)
+    .eq("user_id", user.id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    redirect(`/dashboard/recipes/${recipeId}?error=${encodeURIComponent(error.message)}`);
+  }
+
+  if (!deleted) {
+    redirect(
+      `/dashboard/recipes/${recipeId}?error=${encodeURIComponent("Recipe not found or you do not have access.")}`,
+    );
+  }
+
+  redirect("/dashboard");
+}
