@@ -56,7 +56,7 @@ export function RecipeCard({ recipe }: Props) {
           </div>
         </dl>
         <p className="mt-3 text-xs font-medium text-foreground/80">
-          Edit recipe →
+          Display recipe →
         </p>
       </article>
     </Link>
