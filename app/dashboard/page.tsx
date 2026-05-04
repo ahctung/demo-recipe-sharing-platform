@@ -19,6 +19,8 @@ export default async function DashboardPage({
   const q = qRaw.trim();
   const categoryRaw = typeof sp.category === "string" ? sp.category : "";
   const category = categoryRaw.trim();
+  const difficultyRaw = typeof sp.difficulty === "string" ? sp.difficulty : "";
+  const difficulty = difficultyRaw.trim();
 
   const supabase = await createServerSupabaseClient();
   const { data } = await supabase.auth.getUser();
@@ -41,6 +43,10 @@ export default async function DashboardPage({
 
   if (category) {
     recipesQuery = recipesQuery.eq("category", category);
+  }
+
+  if (difficulty) {
+    recipesQuery = recipesQuery.eq("difficulty", difficulty);
   }
 
   if (q) {
@@ -145,13 +151,23 @@ export default async function DashboardPage({
                   </option>
                 ))}
               </select>
+              <select
+                name="difficulty"
+                defaultValue={difficultyRaw}
+                className="h-11 rounded-md border border-black/10 bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-black/20 dark:border-white/15 dark:focus:ring-white/20"
+              >
+                <option value="">All difficulties</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
               <button
                 type="submit"
                 className="inline-flex h-11 shrink-0 items-center justify-center rounded-md border border-black/15 px-4 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
               >
                 Search
               </button>
-              {q || category ? (
+              {q || category || difficulty ? (
                 <Link
                   href="/dashboard"
                   className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
@@ -175,7 +191,7 @@ export default async function DashboardPage({
           </p>
         ) : recipes.length === 0 ? (
           <p className="rounded-xl border border-dashed border-black/15 px-4 py-8 text-center text-sm text-black/60 dark:border-white/20 dark:text-white/60">
-            {q || category
+            {q || category || difficulty
               ? "No recipes found for the current filters."
               : "No recipes yet. Create the first one with the button above."}
           </p>
