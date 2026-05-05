@@ -90,6 +90,10 @@ export default async function DashboardPage({
     } satisfies RecipeCardRecipe;
   });
 
+  // Remount the filter form when URL params change so defaultValue (search + selects) stays in sync
+  // with the server after client-side navigation (e.g. Clear → /dashboard).
+  const filterFormKey = `q:${qRaw}|d:${difficultyRaw}|c:${categoryRaw}`;
+
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-14">
       <div>
@@ -137,7 +141,11 @@ export default async function DashboardPage({
             </p>
           </div>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-            <form action="/dashboard" className="flex items-center gap-2">
+            <form
+              key={filterFormKey}
+              action="/dashboard"
+              className="flex items-center gap-2"
+            >
               <input
                 name="q"
                 defaultValue={qRaw}
