@@ -15,6 +15,12 @@ export default async function DashboardPage({
     typeof sp.created === "string" && sp.created.length > 0
       ? sp.created
       : null;
+  const qRaw = typeof sp.q === "string" ? sp.q : "";
+  const q = qRaw.trim().toLowerCase();
+  const difficultyRaw = typeof sp.difficulty === "string" ? sp.difficulty : "";
+  const difficulty = difficultyRaw.trim().toLowerCase();
+  const categoryRaw = typeof sp.category === "string" ? sp.category : "";
+  const category = categoryRaw.trim().toLowerCase();
 
   const supabase = await createServerSupabaseClient();
   const { data } = await supabase.auth.getUser();
@@ -30,13 +36,45 @@ export default async function DashboardPage({
 
   const { data: recipeRows, error: recipesError } = await supabase
     .from("recipes")
-    .select("id, title, cook_time_minutes, difficulty, profiles(username)")
+    .select("id, title, category, cook_time_minutes, difficulty, profiles(username)")
     .order("created_at", { ascending: false });
 
-  const recipes = (recipeRows ?? []).map((row) => {
+  const filteredRows = (recipeRows ?? []).filter((row) => {
+    if (q) {
+      const title = String((row as { title?: unknown }).title ?? "")
+        .trim()
+        .toLowerCase();
+      if (!title.includes(q)) {
+        return false;
+      }
+    }
+
+    if (difficulty) {
+      const d = String((row as { difficulty?: unknown }).difficulty ?? "")
+        .trim()
+        .toLowerCase();
+      if (d !== difficulty) {
+        return false;
+      }
+    }
+
+    if (category) {
+      const c = String((row as { category?: unknown }).category ?? "")
+        .trim()
+        .toLowerCase();
+      if (c !== category) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  const recipes = filteredRows.map((row) => {
     const r = row as unknown as {
       id: string;
       title: string;
+      category: string;
       cook_time_minutes: number | null;
       difficulty: string | null;
       profiles?: { username: string } | null;
@@ -45,6 +83,7 @@ export default async function DashboardPage({
     return {
       id: r.id,
       title: r.title,
+      category: r.category,
       cook_time_minutes: r.cook_time_minutes,
       difficulty: r.difficulty,
       creator_username: r.profiles?.username ?? null,
@@ -97,12 +136,59 @@ export default async function DashboardPage({
               Recipes created by everyone.
             </p>
           </div>
-          <Link
-            href="/dashboard/recipes/new"
-            className="inline-flex h-11 shrink-0 items-center justify-center rounded-md bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
-          >
-            Create new recipe
-          </Link>
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+            <form action="/dashboard" className="flex items-center gap-2">
+              <input
+                name="q"
+                defaultValue={qRaw}
+                placeholder="Search titles…"
+                className="h-11 w-full rounded-md border border-black/10 bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-black/20 sm:w-64 dark:border-white/15 dark:focus:ring-white/20"
+              />
+              <select
+                name="difficulty"
+                defaultValue={difficultyRaw}
+                className="h-11 rounded-md border border-black/10 bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-black/20 dark:border-white/15 dark:focus:ring-white/20"
+              >
+                <option value="">All difficulties</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+              <select
+                name="category"
+                defaultValue={categoryRaw}
+                className="h-11 rounded-md border border-black/10 bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-black/20 dark:border-white/15 dark:focus:ring-white/20"
+              >
+                <option value="">All categories</option>
+                <option value="Breakfast">Breakfast</option>
+                <option value="Lunch">Lunch</option>
+                <option value="Dinner">Dinner</option>
+                <option value="Dessert">Dessert</option>
+                <option value="Snack">Snack</option>
+                <option value="Drink">Drink</option>
+              </select>
+              <button
+                type="submit"
+                className="inline-flex h-11 shrink-0 items-center justify-center rounded-md border border-black/15 px-4 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+              >
+                Search
+              </button>
+              {qRaw.trim() || difficultyRaw.trim() || categoryRaw.trim() ? (
+                <Link
+                  href="/dashboard"
+                  className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
+                >
+                  Clear
+                </Link>
+              ) : null}
+            </form>
+            <Link
+              href="/dashboard/recipes/new"
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-md bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+            >
+              Create new recipe
+            </Link>
+          </div>
         </div>
 
         {recipesError ? (
@@ -111,7 +197,9 @@ export default async function DashboardPage({
           </p>
         ) : recipes.length === 0 ? (
           <p className="rounded-xl border border-dashed border-black/15 px-4 py-8 text-center text-sm text-black/60 dark:border-white/20 dark:text-white/60">
-            No recipes yet. Create the first one with the button above.
+            {qRaw.trim() || difficultyRaw.trim() || categoryRaw.trim()
+              ? "No recipes found for the current filters."
+              : "No recipes yet. Create the first one with the button above."}
           </p>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

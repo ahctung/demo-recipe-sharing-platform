@@ -23,6 +23,7 @@ function formatDifficulty(value: string | null): string {
 export type RecipeCardRecipe = {
   id: string;
   title: string;
+  category: string;
   cook_time_minutes: number | null;
   difficulty: string | null;
   creator_username?: string | null;
@@ -51,6 +52,10 @@ export function RecipeCard({ recipe }: Props) {
           </p>
         ) : null}
         <dl className="mt-3 grid gap-2 text-sm text-black/65 dark:text-white/65">
+          <div className="flex items-center justify-between gap-2">
+            <dt className="text-black/50 dark:text-white/50">Category</dt>
+            <dd className="font-medium text-foreground">{recipe.category}</dd>
+          </div>
           <div className="flex items-center justify-between gap-2">
             <dt className="text-black/50 dark:text-white/50">Time</dt>
             <dd className="font-medium text-foreground">
