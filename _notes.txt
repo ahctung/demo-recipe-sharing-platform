@@ -729,7 +729,7 @@ actually I don't like what was implemented for Likes feature, can you remove the
 
 
 ---------
-some confusion with cursor repository, restarted session, continue with social features
+-- some confusion with cursor repository, restarted session, continue with social features
 ---------
 I just restarted the session, let's reiterate where we are and what we want to do next. 
 - We want to work on Social features Like and Comments on recipe page.
@@ -775,6 +775,11 @@ In deleteRecipeCommentAction, the delete should be a "soft" delete. That is, we 
 please provide a SQL for an UPDATE policy on recipe_comments, for the recipe owner to be able to update the comment.
 ---------
 
+
+---------
+-- as final feture added a favourites page that shows all the liked recipe in one place
+---------
+Now lets implement a Favourites page, which shows all liked recipes. Add a link to the page from Header
 
 
 ------------------------------------------------------------
