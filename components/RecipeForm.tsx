@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useCallback, useState, type ReactNode } from "react";
 
+import { CommentSection, type CommentSectionItem } from "@/components/CommentSection";
 import { LikeButton } from "@/components/LikeButton";
+import type { RecipeCommentWithAuthor } from "@/lib/database.types";
 
 export type RecipeFormInitialValues = {
   title: string;
@@ -26,6 +28,8 @@ type Props = {
   likeCount?: number;
   userHasLiked?: boolean;
   likeAction?: () => void | Promise<void>;
+
+  comments?: RecipeCommentWithAuthor[];
 };
 
 function nonEmptyLines(lines: string[] | undefined, fallback: string[]) {
@@ -74,6 +78,7 @@ export function RecipeForm({
   likeCount,
   userHasLiked,
   likeAction,
+  comments,
 }: Props) {
   const isDisplayMode = mode === "display";
   const [isEditing, setIsEditing] = useState(() => !isDisplayMode);
@@ -167,6 +172,18 @@ export function RecipeForm({
   }
 
   const v = initialValues;
+  const commentItems: CommentSectionItem[] = (comments ?? []).map((c) => {
+    const username =
+      c.profiles?.username?.trim() ||
+      c.profiles?.full_name?.trim() ||
+      "Unknown user";
+    return {
+      id: c.id,
+      username,
+      createdAt: c.created_at,
+      comment: c.comment,
+    };
+  });
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -202,110 +219,114 @@ export function RecipeForm({
       </div>
 
       {showReadOnlyShell && v ? (
-        <div className="space-y-5 rounded-xl border border-black/10 bg-background p-6 shadow-sm dark:border-white/15">
-          <div>
-            <span className="text-xs font-medium text-black/70 dark:text-white/70">
-              Title
-            </span>
-            {readOnlyBox(v.title)}
-          </div>
-
-          <div>
-            <span className="text-xs font-medium text-black/70 dark:text-white/70">
-              Description
-            </span>
-            {readOnlyBox(
-              v.description?.trim() ? (
-                <p className="whitespace-pre-wrap">{v.description}</p>
-              ) : (
-                <span className="text-black/50 dark:text-white/50">—</span>
-              ),
-            )}
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
+        <>
+          <div className="space-y-5 rounded-xl border border-black/10 bg-background p-6 shadow-sm dark:border-white/15">
             <div>
               <span className="text-xs font-medium text-black/70 dark:text-white/70">
-                Category
+                Title
               </span>
-              {readOnlyBox(v.category)}
+              {readOnlyBox(v.title)}
             </div>
+
             <div>
               <span className="text-xs font-medium text-black/70 dark:text-white/70">
-                Cook time
+                Description
               </span>
-              {readOnlyBox(formatCookTimeLabel(v.cook_time_minutes))}
+              {readOnlyBox(
+                v.description?.trim() ? (
+                  <p className="whitespace-pre-wrap">{v.description}</p>
+                ) : (
+                  <span className="text-black/50 dark:text-white/50">—</span>
+                ),
+              )}
             </div>
-          </div>
 
-          <div>
-            <span className="text-xs font-medium text-black/70 dark:text-white/70">
-              Difficulty
-            </span>
-            {readOnlyBox(formatDifficultyLabel(v.difficulty))}
-          </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <span className="text-xs font-medium text-black/70 dark:text-white/70">
+                  Category
+                </span>
+                {readOnlyBox(v.category)}
+              </div>
+              <div>
+                <span className="text-xs font-medium text-black/70 dark:text-white/70">
+                  Cook time
+                </span>
+                {readOnlyBox(formatCookTimeLabel(v.cook_time_minutes))}
+              </div>
+            </div>
 
-          <div>
-            <span className="text-xs font-medium text-black/70 dark:text-white/70">
-              Ingredients
-            </span>
-            {readOnlyBox(
-              <ul className="list-inside list-disc space-y-1">
-                {v.ingredients.filter(Boolean).map((line, i) => (
-                  <li key={i}>{line}</li>
-                ))}
-              </ul>,
-            )}
-          </div>
+            <div>
+              <span className="text-xs font-medium text-black/70 dark:text-white/70">
+                Difficulty
+              </span>
+              {readOnlyBox(formatDifficultyLabel(v.difficulty))}
+            </div>
 
-          <div>
-            <span className="text-xs font-medium text-black/70 dark:text-white/70">
-              Instructions
-            </span>
-            {readOnlyBox(
-              <ol className="list-inside list-decimal space-y-2">
-                {v.instructions.filter(Boolean).map((line, i) => (
-                  <li key={i} className="whitespace-pre-wrap pl-1">
-                    {line}
-                  </li>
-                ))}
-              </ol>,
-            )}
-          </div>
+            <div>
+              <span className="text-xs font-medium text-black/70 dark:text-white/70">
+                Ingredients
+              </span>
+              {readOnlyBox(
+                <ul className="list-inside list-disc space-y-1">
+                  {v.ingredients.filter(Boolean).map((line, i) => (
+                    <li key={i}>{line}</li>
+                  ))}
+                </ul>,
+              )}
+            </div>
 
-          <div className="flex flex-wrap gap-3 border-t border-black/10 pt-5 dark:border-white/15">
-            {allowEdit ? (
-              <button
-                type="button"
-                onClick={enterEditMode}
-                className="inline-flex h-11 items-center justify-center rounded-md bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
-              >
-                Edit recipe
-              </button>
-            ) : null}
-            {allowEdit && deleteAction ? (
-              <form action={deleteAction}>
+            <div>
+              <span className="text-xs font-medium text-black/70 dark:text-white/70">
+                Instructions
+              </span>
+              {readOnlyBox(
+                <ol className="list-inside list-decimal space-y-2">
+                  {v.instructions.filter(Boolean).map((line, i) => (
+                    <li key={i} className="whitespace-pre-wrap pl-1">
+                      {line}
+                    </li>
+                  ))}
+                </ol>,
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-3 border-t border-black/10 pt-5 dark:border-white/15">
+              {allowEdit ? (
                 <button
-                  type="submit"
-                  onClick={(e) => {
-                    if (!confirm("Delete this recipe? This cannot be undone.")) {
-                      e.preventDefault();
-                    }
-                  }}
-                  className="inline-flex h-11 items-center justify-center rounded-md bg-red-600 px-5 text-sm font-medium text-white hover:bg-red-700"
+                  type="button"
+                  onClick={enterEditMode}
+                  className="inline-flex h-11 items-center justify-center rounded-md bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
                 >
-                  Delete recipe
+                  Edit recipe
                 </button>
-              </form>
-            ) : null}
-            <Link
-              href="/dashboard"
-              className="inline-flex h-11 items-center justify-center rounded-md border border-black/15 px-5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
-            >
-              Back to dashboard
-            </Link>
+              ) : null}
+              {allowEdit && deleteAction ? (
+                <form action={deleteAction}>
+                  <button
+                    type="submit"
+                    onClick={(e) => {
+                      if (!confirm("Delete this recipe? This cannot be undone.")) {
+                        e.preventDefault();
+                      }
+                    }}
+                    className="inline-flex h-11 items-center justify-center rounded-md bg-red-600 px-5 text-sm font-medium text-white hover:bg-red-700"
+                  >
+                    Delete recipe
+                  </button>
+                </form>
+              ) : null}
+              <Link
+                href="/dashboard"
+                className="inline-flex h-11 items-center justify-center rounded-md border border-black/15 px-5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+              >
+                Back to dashboard
+              </Link>
+            </div>
           </div>
-        </div>
+
+          <CommentSection comments={commentItems} />
+        </>
       ) : (
         <form
           key={editFormKey}

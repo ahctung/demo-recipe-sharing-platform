@@ -729,7 +729,7 @@ actually I don't like what was implemented for Likes feature, can you remove the
 
 
 ---------
-some confustion with cursor repository, restarted session, continue with social features
+some confusion with cursor repository, restarted session, continue with social features
 ---------
 I just restarted the session, let's reiterate where we are and what we want to do next. 
 - We want to work on Social features Like and Comments on recipe page.
@@ -754,7 +754,16 @@ Just build the UI component first, we will hook it up to RecipeForm later
 ---------
 Nice. Let's include this LikeButton in the RecipeForm near the top, and hook it up with recipeWithSocial please
 ---------
-
+Let's go ahead and implement the click for the LikeButton. OnClick it should add an entry to the recipe_likes table if user hasnt liked the recipe yet. Vice versa, we should delete an entry in the table if user has already liked it.
+---------
+Great. Next, let's build the UI Components for Comments. I want the Comments section to look like the image provided.
+- So there should be a CommentItem component which will show: username, created_at and comment
+- Then a CommentSection component which will show: a count of comments, an area to add a comment, a post comment button, then a list of comment items for this recipe.
+Just build the UI component first, we will hook it up to RecipeForm later
+---------
+Great. Now let's include this CommentSection to the bottom of RecipeForm, and hook it with recipeWithSocial please.
+Don't implement the server actions yet.
+---------
 
 
 
