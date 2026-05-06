@@ -746,6 +746,16 @@ Let's extend the Recipe type with the Social features. In particular :
 Then update @app/dashboard/recipes/[id]/page.tsx to be able to read these data from data tables and back into one object
 I want a new type RecipeWithSocial which extends from Recipe, and use that in recipe page 
 ---------
+Let's build the UI Component for Like. I want a LikeButton that looks like the impage provided. 
+- So the number will be used for like_count
+- The heart will indicate if user has liked the recipe. Change color if user_has_liked.
+- Clicking the button will be used to add like to the recipe (implement that later)
+Just build the UI component first, we will hook it up to RecipeForm later
+---------
+Nice. Let's include this LikeButton in the RecipeForm near the top, and hook it up with recipeWithSocial please
+---------
+
+
 
 
 ------------------------------------------------------------

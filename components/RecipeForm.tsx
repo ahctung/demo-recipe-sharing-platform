@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useState, type ReactNode } from "react";
 
+import { LikeButton } from "@/components/LikeButton";
+
 export type RecipeFormInitialValues = {
   title: string;
   description: string | null;
@@ -20,6 +22,9 @@ type Props = {
   creatorUsername?: string | null;
   allowEdit?: boolean;
   deleteAction?: (formData: FormData) => void | Promise<void>;
+
+  likeCount?: number;
+  userHasLiked?: boolean;
 };
 
 function nonEmptyLines(lines: string[] | undefined, fallback: string[]) {
@@ -65,6 +70,8 @@ export function RecipeForm({
   creatorUsername = null,
   allowEdit = true,
   deleteAction,
+  likeCount,
+  userHasLiked,
 }: Props) {
   const isDisplayMode = mode === "display";
   const [isEditing, setIsEditing] = useState(() => !isDisplayMode);
@@ -173,6 +180,14 @@ export function RecipeForm({
               @{creatorUsername}
             </span>
           </p>
+        ) : null}
+
+        {showReadOnlyShell &&
+        typeof likeCount === "number" &&
+        typeof userHasLiked === "boolean" ? (
+          <div className="pt-1">
+            <LikeButton likeCount={likeCount} liked={userHasLiked} />
+          </div>
         ) : null}
       </div>
 

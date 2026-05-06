@@ -104,6 +104,8 @@ export default async function RecipeDetailEditPage({
         initialValues={initialValues}
         creatorUsername={creatorUsername}
         allowEdit={allowEdit}
+        likeCount={recipeWithSocial.likes_count}
+        userHasLiked={recipeWithSocial.user_has_liked}
         action={updateRecipeAction.bind(null, recipeWithSocial.id)}
         deleteAction={deleteRecipeAction.bind(null, recipeWithSocial.id)}
       />
