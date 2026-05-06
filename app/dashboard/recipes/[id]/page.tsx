@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { deleteRecipeAction, updateRecipeAction } from "@/app/dashboard/recipes/actions";
+import { toggleRecipeLikeAction } from "@/app/dashboard/recipes/social-actions";
 import { RecipeForm, type RecipeFormInitialValues } from "@/components/RecipeForm";
 import type { Recipe, RecipeCommentWithAuthor, RecipeWithSocial } from "@/lib/database.types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -106,6 +107,7 @@ export default async function RecipeDetailEditPage({
         allowEdit={allowEdit}
         likeCount={recipeWithSocial.likes_count}
         userHasLiked={recipeWithSocial.user_has_liked}
+        likeAction={toggleRecipeLikeAction.bind(null, recipeWithSocial.id)}
         action={updateRecipeAction.bind(null, recipeWithSocial.id)}
         deleteAction={deleteRecipeAction.bind(null, recipeWithSocial.id)}
       />

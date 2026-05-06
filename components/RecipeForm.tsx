@@ -25,6 +25,7 @@ type Props = {
 
   likeCount?: number;
   userHasLiked?: boolean;
+  likeAction?: () => void | Promise<void>;
 };
 
 function nonEmptyLines(lines: string[] | undefined, fallback: string[]) {
@@ -72,6 +73,7 @@ export function RecipeForm({
   deleteAction,
   likeCount,
   userHasLiked,
+  likeAction,
 }: Props) {
   const isDisplayMode = mode === "display";
   const [isEditing, setIsEditing] = useState(() => !isDisplayMode);
@@ -184,9 +186,17 @@ export function RecipeForm({
 
         {showReadOnlyShell &&
         typeof likeCount === "number" &&
-        typeof userHasLiked === "boolean" ? (
+        typeof userHasLiked === "boolean" &&
+        likeAction ? (
           <div className="pt-1">
-            <LikeButton likeCount={likeCount} liked={userHasLiked} />
+            <form action={likeAction}>
+              <LikeButton
+                type="submit"
+                likeCount={likeCount}
+                liked={userHasLiked}
+                aria-label={userHasLiked ? "Unlike recipe" : "Like recipe"}
+              />
+            </form>
           </div>
         ) : null}
       </div>

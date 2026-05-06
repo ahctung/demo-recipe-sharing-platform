@@ -5,7 +5,7 @@ import { type ButtonHTMLAttributes } from "react";
 type Props = {
   likeCount: number;
   liked: boolean;
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type" | "aria-pressed">;
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-pressed">;
 
 function HeartIcon({ liked }: { liked: boolean }) {
   return (
@@ -30,7 +30,7 @@ export function LikeButton({ likeCount, liked, className = "", ...rest }: Props)
   return (
     <button
       {...rest}
-      type="button"
+      type={rest.type ?? "button"}
       aria-pressed={liked}
       className={[
         "inline-flex items-center gap-2 rounded-md px-1 py-0.5 text-sm font-medium",
