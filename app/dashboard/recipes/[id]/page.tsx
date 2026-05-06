@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { deleteRecipeAction, updateRecipeAction } from "@/app/dashboard/recipes/actions";
 import { RecipeForm, type RecipeFormInitialValues } from "@/components/RecipeForm";
-import type { Recipe } from "@/lib/database.types";
+import type { Recipe, RecipeCommentWithAuthor, RecipeWithSocial } from "@/lib/database.types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function RecipeDetailEditPage({
@@ -43,14 +43,47 @@ export default async function RecipeDetailEditPage({
     ).profiles?.username ?? null;
   const allowEdit = recipe.user_id === authData.user.id;
 
+  const [likesCountRes, myLikeRes, commentsRes] = await Promise.all([
+    supabase
+      .from("recipe_likes")
+      .select("*", { count: "exact", head: true })
+      .eq("recipe_id", id),
+    supabase
+      .from("recipe_likes")
+      .select("id")
+      .eq("recipe_id", id)
+      .eq("user_id", authData.user.id)
+      .maybeSingle(),
+    supabase
+      .from("recipe_comments")
+      .select(
+        "id, recipe_id, user_id, comment, created_at, updated_at, deleted_at, profiles!recipe_comments_user_id_fkey(username, full_name)",
+      )
+      .eq("recipe_id", id)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true }),
+  ]);
+
+  const likes_count =
+    likesCountRes.error || likesCountRes.count === null ? 0 : likesCountRes.count;
+  const user_has_liked = !myLikeRes.error && !!myLikeRes.data;
+  const comments = (commentsRes.data ?? []) as unknown as RecipeCommentWithAuthor[];
+
+  const recipeWithSocial: RecipeWithSocial = {
+    ...recipe,
+    likes_count,
+    user_has_liked,
+    comments,
+  };
+
   const initialValues: RecipeFormInitialValues = {
-    title: recipe.title,
-    description: recipe.description,
-    category: recipe.category,
-    cook_time_minutes: recipe.cook_time_minutes,
-    difficulty: recipe.difficulty,
-    ingredients: [...recipe.ingredients],
-    instructions: [...recipe.instructions],
+    title: recipeWithSocial.title,
+    description: recipeWithSocial.description,
+    category: recipeWithSocial.category,
+    cook_time_minutes: recipeWithSocial.cook_time_minutes,
+    difficulty: recipeWithSocial.difficulty,
+    ingredients: [...recipeWithSocial.ingredients],
+    instructions: [...recipeWithSocial.instructions],
   };
 
   return (
@@ -66,13 +99,13 @@ export default async function RecipeDetailEditPage({
         </div>
       ) : null}
       <RecipeForm
-        key={`${recipe.id}-${recipe.updated_at}`}
+        key={`${recipeWithSocial.id}-${recipeWithSocial.updated_at}`}
         mode="display"
         initialValues={initialValues}
         creatorUsername={creatorUsername}
         allowEdit={allowEdit}
-        action={updateRecipeAction.bind(null, recipe.id)}
-        deleteAction={deleteRecipeAction.bind(null, recipe.id)}
+        action={updateRecipeAction.bind(null, recipeWithSocial.id)}
+        deleteAction={deleteRecipeAction.bind(null, recipeWithSocial.id)}
       />
     </div>
   );

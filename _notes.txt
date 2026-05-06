@@ -739,8 +739,13 @@ Can you suggest the workflow/steps to build next, step by step, please.
 ---------
 Looks good, let's start with creating the TypeScript types for recpie_likes and recpie_comments.
 ---------
-
-
+Let's extend the Recipe type with the Social features. In particular :
+- likes_count
+- user_has_liked
+- comments for recipe
+Then update @app/dashboard/recipes/[id]/page.tsx to be able to read these data from data tables and back into one object
+I want a new type RecipeWithSocial which extends from Recipe, and use that in recipe page 
+---------
 
 
 ------------------------------------------------------------
