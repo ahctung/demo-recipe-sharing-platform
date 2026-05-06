@@ -23,3 +23,22 @@ export type Recipe = {
   created_at: string;
   updated_at: string;
 };
+
+/** Row shape for `public.recipe_likes`. */
+export type RecipeLike = {
+  id: string;
+  recipe_id: string;
+  user_id: string;
+  created_at: string;
+};
+
+/** Row shape for `public.recipe_comments`. */
+export type RecipeComment = {
+  id: string;
+  recipe_id: string;
+  user_id: string;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};

@@ -1,0 +1,884 @@
+Recipe App
+
+----------------
+ChatGPT:
+
+want to create a NextJS project where users can upload and browse recipes. This will be a recipe sharing platform. can you create a PRD for us that has the core features, tech stack, and a step by step implementation guide? - I want to use Supabase for my database/authentication backend
+
+Response:
+
+Below is a practical PRD for your **Next.js + Supabase recipe sharing platform**.
+
+---
+
+# PRD: Recipe Sharing Platform
+
+## 1. Product Overview
+
+A web app where users can create an account, upload recipes, browse recipes from other users, save favourites, and discover cooking inspiration through search, filters, categories, and tags.
+
+The MVP should focus on making recipe publishing and browsing smooth, clean, and useful. No need to boil the ocean yet — just make the core loop excellent.
+
+---
+
+## 2. Target Users
+
+Primary users:
+
+* Home cooks who want to save and share recipes
+* Food creators/bloggers who want a simple recipe profile
+* People looking for cooking inspiration
+* Families wanting a central recipe library
+
+---
+
+## 3. Core User Stories
+
+As a user, I want to:
+
+* Sign up and log in
+* Create a profile
+* Upload a recipe with ingredients, steps, images, cooking time, servings, and tags
+* Browse public recipes
+* Search recipes by keyword
+* Filter recipes by category, cuisine, difficulty, dietary tags, and cooking time
+* View a full recipe page
+* Save recipes to my favourites
+* Edit or delete my own recipes
+* View another user’s recipe profile
+
+As an admin, I want to:
+
+* View all recipes
+* Remove inappropriate content
+* Manage categories/tags
+* Feature selected recipes
+
+---
+
+## 4. MVP Features
+
+### Authentication
+
+Use **Supabase Auth** for:
+
+* Email/password sign up
+* Email/password login
+* Logout
+* Authenticated user sessions
+* Protected dashboard routes
+
+Supabase Auth supports common auth methods including password, magic link, OTP, social login, and SSO, so you can start simple and expand later. ([Supabase][1])
+
+---
+
+### User Profiles
+
+Each user should have:
+
+* Display name
+* Username/slug
+* Bio
+* Avatar
+* Created date
+
+Profile pages:
+
+```txt
+/users/[username]
+```
+
+Example:
+
+```txt
+/users/sandra
+```
+
+---
+
+### Recipe Upload
+
+Recipe fields:
+
+* Title
+* Description
+* Hero image
+* Prep time
+* Cook time
+* Total time
+* Servings
+* Difficulty
+* Cuisine
+* Meal type
+* Dietary tags
+* Ingredients
+* Method/steps
+* Notes
+* Source/credit, optional
+* Public/private status
+
+---
+
+### Recipe Browsing
+
+Public recipe feed:
+
+```txt
+/recipes
+```
+
+Features:
+
+* Search bar
+* Category filters
+* Tag filters
+* Sort by newest/popular
+* Recipe cards with image, title, time, difficulty, creator
+
+---
+
+### Recipe Detail Page
+
+Route:
+
+```txt
+/recipes/[slug]
+```
+
+Page includes:
+
+* Hero image
+* Title
+* Author
+* Description
+* Prep/cook/total time
+* Servings
+* Ingredients
+* Step-by-step method
+* Tags
+* Save/favourite button
+* Edit/delete buttons for owner only
+
+---
+
+### Favourites
+
+Authenticated users can save recipes.
+
+Route:
+
+```txt
+/dashboard/favourites
+```
+
+---
+
+### User Dashboard
+
+Route:
+
+```txt
+/dashboard
+```
+
+Dashboard includes:
+
+* My recipes
+* Create new recipe
+* Edit existing recipe
+* Favourites
+* Profile settings
+
+---
+
+## 5. Nice-to-Have Features Later
+
+Post-MVP:
+
+* Comments and ratings
+* Meal planning
+* Shopping list generation
+* Recipe import from URL
+* AI recipe formatting/extraction
+* Image moderation
+* Social sharing previews
+* Collections/folders
+* Follow creators
+* Nutrition information
+* Premium creator profiles
+* Print-friendly recipe pages
+* “Cook mode” with step-by-step view
+
+---
+
+# 6. Recommended Tech Stack
+
+## Frontend
+
+* **Next.js with App Router**
+* React
+* TypeScript
+* Tailwind CSS
+* shadcn/ui for UI components
+* React Hook Form
+* Zod for validation
+
+Next.js recommends the App Router for modern projects, with support for layouts, server components, routing, and TypeScript setup through `create-next-app`. ([nextjs.org][2])
+
+## Backend
+
+* **Supabase Postgres database**
+* **Supabase Auth**
+* **Supabase Storage** for recipe images and avatars
+* Supabase Row Level Security policies
+
+Supabase has official quickstarts for using Supabase and Supabase Auth with the Next.js App Router. ([Supabase][3])
+
+## Hosting
+
+* Vercel for Next.js deployment
+* Supabase hosted backend
+
+## Suggested Packages
+
+```bash
+npm install @supabase/supabase-js @supabase/ssr
+npm install react-hook-form zod @hookform/resolvers
+npm install slugify
+npm install lucide-react
+```
+
+---
+
+# 7. Suggested Database Schema
+
+## `profiles`
+
+```sql
+id uuid primary key references auth.users(id) on delete cascade,
+username text unique not null,
+display_name text,
+bio text,
+avatar_url text,
+created_at timestamp with time zone default now()
+```
+
+## `recipes`
+
+```sql
+id uuid primary key default gen_random_uuid(),
+user_id uuid references profiles(id) on delete cascade,
+title text not null,
+slug text unique not null,
+description text,
+hero_image_url text,
+prep_time_minutes int,
+cook_time_minutes int,
+servings int,
+difficulty text,
+cuisine text,
+meal_type text,
+notes text,
+is_public boolean default true,
+created_at timestamp with time zone default now(),
+updated_at timestamp with time zone default now()
+```
+
+## `ingredients`
+
+```sql
+id uuid primary key default gen_random_uuid(),
+recipe_id uuid references recipes(id) on delete cascade,
+position int not null,
+quantity text,
+unit text,
+name text not null,
+notes text
+```
+
+## `recipe_steps`
+
+```sql
+id uuid primary key default gen_random_uuid(),
+recipe_id uuid references recipes(id) on delete cascade,
+position int not null,
+instruction text not null
+```
+
+## `tags`
+
+```sql
+id uuid primary key default gen_random_uuid(),
+name text unique not null,
+slug text unique not null
+```
+
+## `recipe_tags`
+
+```sql
+recipe_id uuid references recipes(id) on delete cascade,
+tag_id uuid references tags(id) on delete cascade,
+primary key (recipe_id, tag_id)
+```
+
+## `favourites`
+
+```sql
+user_id uuid references profiles(id) on delete cascade,
+recipe_id uuid references recipes(id) on delete cascade,
+created_at timestamp with time zone default now(),
+primary key (user_id, recipe_id)
+```
+
+---
+
+# 8. App Structure
+
+```txt
+app/
+  page.tsx
+  recipes/
+    page.tsx
+    [slug]/
+      page.tsx
+  dashboard/
+    page.tsx
+    recipes/
+      new/
+        page.tsx
+      [id]/
+        edit/
+          page.tsx
+    favourites/
+      page.tsx
+    profile/
+      page.tsx
+  auth/
+    login/
+      page.tsx
+    signup/
+      page.tsx
+components/
+  RecipeCard.tsx
+  RecipeForm.tsx
+  IngredientInput.tsx
+  StepInput.tsx
+  SearchFilters.tsx
+lib/
+  supabase/
+    client.ts
+    server.ts
+  validators/
+    recipe.ts
+  utils/
+    slug.ts
+```
+
+---
+
+# 9. Step-by-Step Implementation Guide
+
+## Phase 1: Project Setup
+
+1. Create the Next.js app:
+
+```bash
+npx create-next-app@latest recipe-platform
+```
+
+Use:
+
+* TypeScript
+* Tailwind CSS
+* App Router
+* ESLint
+
+2. Install Supabase packages:
+
+```bash
+npm install @supabase/supabase-js @supabase/ssr
+```
+
+3. Create a Supabase project.
+
+4. Add environment variables:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
+
+---
+
+## Phase 2: Supabase Setup
+
+1. Create database tables.
+2. Enable Row Level Security.
+3. Add policies so:
+
+   * Anyone can read public recipes.
+   * Users can create recipes only as themselves.
+   * Users can update/delete only their own recipes.
+   * Users can favourite recipes only as themselves.
+4. Create storage buckets:
+
+   * `recipe-images`
+   * `avatars`
+
+---
+
+## Phase 3: Authentication
+
+Build:
+
+* Signup page
+* Login page
+* Logout action
+* Auth callback handling
+* Protected dashboard route
+
+Start with email/password. Add Google login later if needed.
+
+---
+
+## Phase 4: Profiles
+
+Build:
+
+* Auto-create profile after signup
+* Profile settings page
+* Username validation
+* Avatar upload
+* Public profile page
+
+---
+
+## Phase 5: Recipe Creation
+
+Build the recipe form with:
+
+* Basic recipe details
+* Dynamic ingredients list
+* Dynamic method steps
+* Image upload
+* Tags
+* Public/private toggle
+
+Use Zod validation so bad data doesn’t sneak in wearing a trench coat.
+
+---
+
+## Phase 6: Recipe Browsing
+
+Build:
+
+* `/recipes`
+* Recipe card grid
+* Search by title/description
+* Filters by cuisine, meal type, difficulty, tags
+* Sort by newest
+
+---
+
+## Phase 7: Recipe Detail Page
+
+Build:
+
+* Full recipe page
+* Ingredients list
+* Step-by-step method
+* Save/favourite button
+* Owner-only edit/delete controls
+
+---
+
+## Phase 8: Favourites
+
+Build:
+
+* Save/unsave recipe
+* Favourites page
+* Prevent duplicate favourites
+
+---
+
+## Phase 9: Admin/Moderation
+
+For MVP, keep this simple:
+
+* Add `role` field to profiles
+* Admin-only route
+* Admin can hide/delete recipes
+
+---
+
+## Phase 10: Deployment
+
+1. Push project to GitHub.
+2. Deploy to Vercel.
+3. Add Supabase environment variables to Vercel.
+4. Test auth redirect URLs.
+5. Test image uploads.
+6. Test database permissions.
+
+---
+
+# 10. MVP Build Order
+
+I’d build in this order:
+
+1. Supabase schema
+2. Auth
+3. Profiles
+4. Recipe create/edit/delete
+5. Public recipe browsing
+6. Recipe detail page
+7. Favourites
+8. Search and filters
+9. Image upload
+10. Admin moderation
+
+That gives you the core loop quickly:
+
+**Sign up → upload recipe → browse recipe → save recipe.**
+
+That’s the product. Everything else is seasoning.
+
+[1]: https://supabase.com/docs/guides/auth?utm_source=chatgpt.com "Auth | Supabase Docs"
+[2]: https://nextjs.org/docs/app?utm_source=chatgpt.com "Next.js Docs: App Router"
+[3]: https://supabase.com/docs/guides/auth/quickstarts/nextjs?utm_source=chatgpt.com "Use Supabase Auth with Next.js"
+
+
+------------------------------------------------------------
+Some of the prompts used for Cursor to build the app:
+
+---------
+-- Initial instructions to build the app, starting with a simple landing page
+---------
+Please create a recipe sharing platform for us.
+
+PRD below:
+
+[paste the PRD above]
+
+Please only update the home page UI for now. We want a simple deesign. And then after this, we can begin implementing Supabase.
+
+We are not using a src folder.
+---------
+
+---------
+-- To create initial 2 database tables
+--------- 
+I just created a Supabase project, and enabled authentication for email only. 
+Can you help me with database table setup.
+To start with, I just want 2 tables:
+1) a "profiles" table
+2) a "recipes" table
+The tables should have columns that would match up with PRD
+--------- 
+
+--------- 
+-- To hook up app to supabase, after the 2 tables have been setup
+--------- 
+(take a screenshot of the 2 tables from Schema Visualizer, and copy to the chat)
+We have created 2 data tables in Supabase (profiles and recipes) , please use the image provided as reference so you know what fields we have in each of the 2 data tables.
+
+Now, lets go ahead and start the initial setup of Supabase in this project. Please walk me through this.
+--------- 
+
+
+--------- 
+-- After updating .env.local file with real supabase url and api, get cursor to write a quick health check to verify the connection
+--------- 
+we have populated the .env file inside our @Codebase
+Can you just implement a quick test on our home page to make sure we are connected to Supabase?
+--------- 
+
+--------- 
+-- Health check is green, confirmed able to connect to supabase. So can proceed on the authentication
+--------- 
+Let's start working on the auth components/files. 
+--------- 
+
+
+--------- 
+-- With authentication all working, proceed to hook up app to data tables
+--------- 
+Now let's start linking our data tables to the web app. Starting with the profiles table. 
+
+Please use the image given as reference for the table schema.
+--------- 
+Now can you please create a profile page that we can use to edit all the editable fields in profiles table. Then create a link from the header to this page.
+--------- 
+
+
+--------- 
+-- Got profiles all working, next work on recipes
+--------- 
+Our profiles are now implemented. We see the updtes within our Supabase database.
+Now let's begin working on implementing recipes into our app. 
+Can you recommend the workflow for implmenting recipes (creating new recipes, browsing recipes created by others, etc)
+
+
+** here is actually the reply from cursor on the workflow
+1) Lock in data rules first (Supabase)
+Row Level Security
+SELECT: everyone can read rows that represent “public” recipes; owners can always read their own (including drafts if you add is_public later). Today your schema has no is_public—decide if all rows are public for MVP or add is_public boolean soon.
+INSERT: only user_id = auth.uid().
+UPDATE / DELETE: only user_id = auth.uid().
+Identifiers for URLs
+PRD used /recipes/[slug]. Your table has id + title but no slug yet. Either:
+add slug text unique (recommended for shareable URLs), generate on create/update from title + collision handling, or
+use /recipes/[id] for MVP and add slugs later.
+2) Implement “my recipes” before “browse everyone”
+Order reduces unknowns: you only need owner policies and simple forms first.
+
+/dashboard/recipes/new
+Server Component loads session; redirect if not logged in.
+Client or Server form posting to a server action createRecipe.
+Insert into recipes with user_id = auth.uid(), ingredients / instructions as text[] (build arrays from dynamic inputs in the form).
+/dashboard/recipes (optional list) or reuse dashboard card linking to “My recipes”.
+Query recipes where user_id = auth.uid() ordered by created_at desc.
+/dashboard/recipes/[id]/edit
+Load recipe by id and user_id = auth.uid() (or rely on RLS).
+Same form as create, pre-filled; server action updateRecipe.
+This validates inserts, arrays, and ownership without worrying about public discovery yet.
+
+3) Then implement public browsing
+/recipes
+Server Component: select only rows you consider public (all rows for now, or is_public = true once added).
+Join profiles for display name / username on each card (title, category, cook_time_minutes, difficulty, maybe first line of description).
+Detail page
+/recipes/[slug] (if you add slug) or /recipes/[id] for MVP.
+Fetch by slug/id; join profile for author line.
+4) Cross-cutting pieces (do early, small)
+Validation: Zod schema for create/update (title required, arrays non-empty or allow empty per product choice, category required per your DB).
+Types: extend Recipe in lib/database.types.ts if you add slug / is_public.
+Errors: map Supabase errors to friendly messages on forms (duplicate slug, RLS).
+5) Suggested build order (checklist)
+RLS policies for recipes + optional is_public + optional slug column.
+Create recipe (server action + form).
+List my recipes (dashboard).
+Edit/delete my recipe.
+Public /recipes list + recipe detail.
+Nice-to-haves: search/filter, images (hero_image_url + Storage), favourites table.
+If you tell me whether you want /recipes/[id] for MVP or to add slug now, the next implementation step can follow that choice cleanly.
+
+
+--------- 
+Let's first start with the new recipe creation form. Put the UI into a RecipeForm.tsx in components folder please.
+--------- 
+create new recipe is working. Now I want to show on dashboard a list of My Recipes - that is recipes created by me. I want the recipe to be display as "Recipe Cards" and each recipe card should show a brief summary of: recipe name, time it takes and difficulty.
+--------- 
+we can see the receipes now. Let's implement a recipe details page, can use the same RecipeForm UI, allowing user to update the recipe. Make it so you can open the form from the Recipe Card.
+--------- 
+Can you add another mode "display" to RecipeForm Props. Use this mode when we route to the form from Recipe Card. 
+In this mode the title is "Display recipe", all the fields are read-only. Then instead of "Save Changes", make it an "Edit Recipe" button, which which clicked, will change the form into Edit mode.
+---------
+
+---------
+Can you make a change to the dashboard page, instead of showing only recipes created by the current user, show all the recipes available.
+---------
+Add username to both RecipeForm and RecipeCard to show who created the recipe. Need to link user id in recipes table to the profile table to get the username.
+--------- 
+in @recipe-sharing-platform/app/dashboard/page.tsx  I'm expecting "profiles(username)" to always be a single object, so remove any defensive typing logic like { username: string }[] etc
+--------- 
+In @recipe-sharing-platform/components/RecipeForm.tsx the Edit recipe button should only appear if the recipe's user_id matches the current user. Can you implement that.
+---------
+Add a "Delete Recipe" button to recipe details page. Similar to Edit Recipe button, it should only show if the recipe's user_id matches current user. Make this new delete button red in color.
+
+
+---------
+-- Now add some extra function on dashboard for filtering
+---------
+in @recipe-sharing-platform/app/dashboard/page.tsx add a search feature by look for keyword in the title of recipeRows. Don't perform the search by the server query
+---------
+Add a dropdown filter for Difficulty. Again, don't perform the filter on backend, just apply a filter logic on difficult column in filteredRows
+---------
+Add category to RecipeCard. Include category when getting recipe from database
+---------
+add a dropdown filter for Category, similar to drop down for diffculty. 
+---------
+(with the Search and Filters, right now it's triggered by a Search button
+Can consider making it real time:
+Real-time search as you type using Debounce technique
+Real-time filter as you select from dropdown)
+
+---------
+-- Work on user experience, add loading state
+---------
+We want to add loading states to the pages of our web app for better user experience.
+
+For the loading states, let use basic suspense loading state and a skeleton component
+---------
+Can you add a skeleton for profile page and add it to the loading of @recipe-sharing-platform/app/dashboard/profile pls
+
+---------
+Work on social features  - Likes and comments
+---------
+Now let's start working on some social features. In particular Likes and Comments on the Recipes. 
+Can you breakdown and suggest the next steps to build
+---------
+Please provide SQL for creating a recipe_likes and recipe_comments table, in supabase.
+Please use the image given as reference, which shows the schemas for tables I have already created.
+---------
+Refer to the image for the schema for recipe_likes table. 
+Let's first implement the Likes feature on Recipe details page. First, add a Like counter to recipe details, the counter shows a count of number of likes for this recipe id. Next introduce ability for user to click Like on the recipe, which adds an entry to the recipe_likes table. Lastly, if user has liked the reciepe, should show that by changing the color of the Likes button. 
+---------
+actually I don't like what was implemented for Likes feature, can you remove them, and take it back to the state before we implemented the Likes feature.
+
+
+---------
+some confustion with cursor repository, restarted session, continue with social features
+---------
+I just restarted the session, let's reiterate where we are and what we want to do next. 
+- We want to work on Social features Like and Comments on recipe page.
+- We have created a recipe_likes table and recipe_comment table in supabase. Refer to attached image for their schema.
+- Next I want to hook up the tables to the app, then work on the UI elements. 
+Can you suggest the workflow/steps to build next, step by step, please.
+---------
+Looks good, let's start with creating the TypeScript types for recpie_likes and recpie_comments.
+---------
+
+
+
+
+------------------------------------------------------------
+SQL for database table
+
+profiles table
+reate table if not exists public.profiles (
+  id uuid primary key references auth.users(id),
+  username text unique not null,
+  full_name text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.profiles enable row level security;
+
+-- Anyone can view profiles (needed for /users/[username])
+drop policy if exists "profiles are public read" on public.profiles;
+create policy "profiles are public read"
+on public.profiles
+for select
+to public
+using (true);
+-- Users can insert only their own profile row (usually created by trigger, but safe)
+drop policy if exists "users can insert their own profile" on public.profiles;
+create policy "users can insert their own profile"
+on public.profiles
+for insert
+to authenticated
+with check (id = auth.uid());
+-- Users can update only their own profile
+drop policy if exists "users can update their own profile" on public.profiles;
+create policy "users can update their own profile"
+on public.profiles
+for update
+to authenticated
+using (true)
+with check (id = auth.uid());
+
+
+recipes table
+---------
+create table if not exists public.recipes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) not null,
+  title text not null,
+  description text,
+  cook_time_minutes int check (cook_time_minutes is null or cook_time_minutes >= 0),
+  difficulty text check (difficulty is null or difficulty in ('easy', 'medium', 'hard')),
+  ingredients text[] not null,
+  category text not null,
+  instructions text[] not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.recipes enable row level security;
+
+create policy "Recipes are viewable by everyone"
+on public.recipes
+for select
+to public
+using (
+  true
+);
+
+create policy "Users can insert their own recipes"
+on public.recipes
+for insert
+to authenticated
+with check (user_id = auth.uid());
+
+create policy "Users can update own recipes"
+on public.recipes
+for update
+to authenticated
+using (user_id = auth.uid());
+
+create policy "Users can delete own recipes"
+on public.recipes
+for delete
+to authenticated
+using (user_id = auth.uid());
+
+
+
+
+-- =========
+-- recipe_likes
+-- =========
+create table if not exists public.recipe_likes (
+  id uuid primary key default gen_random_uuid(),
+  recipe_id uuid not null references public.recipes(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  constraint recipe_likes_one_per_user unique (recipe_id, user_id)
+);
+
+-- =========
+-- recipe_comments
+-- =========
+create table if not exists public.recipe_comments (
+  id uuid primary key default gen_random_uuid(),
+  recipe_id uuid not null references public.recipes(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  body text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz null,
+  constraint recipe_comments_body_len
+    check (char_length(trim(body)) between 1 and 5000)
+);
+
+
+-- =========
+-- RLS for likes and comments tables
+-- =========
+
+-- Anyone can read likes (for counts, UI, etc.)
+drop policy if exists "recipe_likes_select_all" on public.recipe_likes;
+create policy "recipe_likes_select_all"
+on public.recipe_likes
+for select
+to public
+using (true);
+
+-- Only signed-in users can like, only as themselves
+drop policy if exists "recipe_likes_insert_own" on public.recipe_likes;
+create policy "recipe_likes_insert_own"
+on public.recipe_likes
+for insert
+to authenticated
+with check (user_id = auth.uid());
+
+-- Only signed-in users can unlike (delete) their own like
+drop policy if exists "recipe_likes_delete_own" on public.recipe_likes;
+create policy "recipe_likes_delete_own"
+on public.recipe_likes
+for delete
+to authenticated
+using (user_id = auth.uid());
