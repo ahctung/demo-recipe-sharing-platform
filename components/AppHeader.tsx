@@ -29,6 +29,12 @@ export async function AppHeader() {
               >
                 Dashboard
               </Link>
+              <Link
+                href="/dashboard/favourites"
+                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10"
+              >
+                Favourites
+              </Link>
               <form action={logoutAction} className="inline">
                 <button
                   type="submit"
