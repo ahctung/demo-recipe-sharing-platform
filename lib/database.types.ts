@@ -23,3 +23,34 @@ export type Recipe = {
   created_at: string;
   updated_at: string;
 };
+
+/** Row shape for `public.recipe_likes`. */
+export type RecipeLike = {
+  id: string;
+  recipe_id: string;
+  user_id: string;
+  created_at: string;
+};
+
+/** Row shape for `public.recipe_comments`. */
+export type RecipeComment = {
+  id: string;
+  recipe_id: string;
+  user_id: string;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+/** Read shape for recipe comments with author info from `public.profiles`. */
+export type RecipeCommentWithAuthor = RecipeComment & {
+  profiles?: Pick<Profile, "username" | "full_name"> | null;
+};
+
+/** Recipe row extended with derived social fields (NOT persisted on `public.recipes`). */
+export type RecipeWithSocial = Recipe & {
+  likes_count: number;
+  user_has_liked: boolean;
+  comments: RecipeCommentWithAuthor[];
+};

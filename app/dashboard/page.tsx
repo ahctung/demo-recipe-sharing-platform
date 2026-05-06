@@ -71,6 +71,7 @@ export default async function DashboardPage({
     const r = row as unknown as {
       id: string;
       title: string;
+      category: string;
       cook_time_minutes: number | null;
       difficulty: string | null;
       profiles?: { username: string } | null;
@@ -79,11 +80,16 @@ export default async function DashboardPage({
     return {
       id: r.id,
       title: r.title,
+      category: r.category,
       cook_time_minutes: r.cook_time_minutes,
       difficulty: r.difficulty,
       creator_username: r.profiles?.username ?? null,
     } satisfies RecipeCardRecipe;
   });
+
+  // Remount the filter form when URL params change so defaultValue (search + selects) stays in sync
+  // with the server after client-side navigation (e.g. Clear → /dashboard).
+  const filterFormKey = `q:${qRaw}|d:${difficultyRaw}|c:${categoryRaw}`;
 
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-14">
@@ -132,7 +138,11 @@ export default async function DashboardPage({
             </p>
           </div>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-            <form action="/dashboard" className="flex items-center gap-2">
+            <form
+              key={filterFormKey}
+              action="/dashboard"
+              className="flex items-center gap-2"
+            >
               <input
                 name="q"
                 defaultValue={qRaw}
@@ -151,7 +161,6 @@ export default async function DashboardPage({
                   </option>
                 ))}
               </select>
-              <select
                 name="difficulty"
                 defaultValue={difficultyRaw}
                 className="h-11 rounded-md border border-black/10 bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-black/20 dark:border-white/15 dark:focus:ring-white/20"
@@ -167,7 +176,7 @@ export default async function DashboardPage({
               >
                 Search
               </button>
-              {q || category || difficulty ? (
+              {qRaw.trim() || difficultyRaw.trim() || categoryRaw.trim() ? (
                 <Link
                   href="/dashboard"
                   className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
@@ -191,7 +200,7 @@ export default async function DashboardPage({
           </p>
         ) : recipes.length === 0 ? (
           <p className="rounded-xl border border-dashed border-black/15 px-4 py-8 text-center text-sm text-black/60 dark:border-white/20 dark:text-white/60">
-            {q || category || difficulty
+            {qRaw.trim() || difficultyRaw.trim() || categoryRaw.trim()
               ? "No recipes found for the current filters."
               : "No recipes yet. Create the first one with the button above."}
           </p>
