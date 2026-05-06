@@ -78,3 +78,41 @@ export async function addRecipeCommentAction(recipeId: string, comment: string) 
   revalidatePath(`/dashboard/recipes/${recipeId}`);
 }
 
+export async function deleteRecipeCommentAction(recipeId: string, commentId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const user = authData.user;
+
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  const { data: owned } = await supabase
+    .from("recipes")
+    .select("id")
+    .eq("id", recipeId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!owned) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("recipe_comments")
+    .update({
+      deleted_at: now,
+      updated_at: now,
+    })
+    .eq("id", commentId)
+    .eq("recipe_id", recipeId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+
+  revalidatePath(`/dashboard/recipes/${recipeId}`);
+}
+

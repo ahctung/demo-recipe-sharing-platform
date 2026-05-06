@@ -31,6 +31,7 @@ type Props = {
 
   comments?: RecipeCommentWithAuthor[];
   postCommentAction?: (comment: string) => void | Promise<void>;
+  deleteCommentAction?: (commentId: string) => void | Promise<void>;
 };
 
 function nonEmptyLines(lines: string[] | undefined, fallback: string[]) {
@@ -81,6 +82,7 @@ export function RecipeForm({
   likeAction,
   comments,
   postCommentAction,
+  deleteCommentAction,
 }: Props) {
   const isDisplayMode = mode === "display";
   const [isEditing, setIsEditing] = useState(() => !isDisplayMode);
@@ -327,7 +329,12 @@ export function RecipeForm({
             </div>
           </div>
 
-          <CommentSection comments={commentItems} onPostComment={postCommentAction} />
+          <CommentSection
+            comments={commentItems}
+            onPostComment={postCommentAction}
+            showDeleteForRecipeOwner={allowEdit}
+            onDeleteComment={allowEdit ? deleteCommentAction : undefined}
+          />
         </>
       ) : (
         <form

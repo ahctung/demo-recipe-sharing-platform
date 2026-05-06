@@ -766,6 +766,15 @@ Don't implement the server actions yet.
 ---------
 Great, let's go ahead and implement posting of comment. Implement OnClick of the Post Comment button, which would insert the comment to recipe_comments table. There should be a validation on the button to check that the text box is not empty. 
 ---------
+I want to change the RLS policy on recipe_comments table. Please give me the SQL to set it so that only the recipe owner's id can delete the comment.
+---------
+The Post Comment logic is looking good, and so is the Comment Section. Now I want to add ability to delete comment. First of all, in the CommentItem component, add a delete button. The button will show if the recipe owner is same as the current user. Otherwise, hide the button.
+---------
+In deleteRecipeCommentAction, the delete should be a "soft" delete. That is, we won't delete the entry from table, but will update deleted_at timestamp.
+---------
+please provide a SQL for an UPDATE policy on recipe_comments, for the recipe owner to be able to update the comment.
+---------
+
 
 
 ------------------------------------------------------------

@@ -15,9 +15,18 @@ type Props = {
   comments: CommentSectionItem[];
   onPostComment?: (comment: string) => void | Promise<void>;
   isPosting?: boolean;
+  /** True when the signed-in user owns the recipe (show delete on each comment). */
+  showDeleteForRecipeOwner?: boolean;
+  onDeleteComment?: (commentId: string) => void | Promise<void>;
 };
 
-export function CommentSection({ comments, onPostComment, isPosting = false }: Props) {
+export function CommentSection({
+  comments,
+  onPostComment,
+  isPosting = false,
+  showDeleteForRecipeOwner = false,
+  onDeleteComment,
+}: Props) {
   const [draft, setDraft] = useState("");
   const countLabel = useMemo(() => {
     const n = comments.length;
@@ -68,6 +77,10 @@ export function CommentSection({ comments, onPostComment, isPosting = false }: P
             username={c.username}
             createdAt={c.createdAt}
             comment={c.comment}
+            showDeleteButton={showDeleteForRecipeOwner}
+            onDelete={
+              onDeleteComment ? () => onDeleteComment(c.id) : undefined
+            }
           />
         ))}
       </div>
