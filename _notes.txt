@@ -764,7 +764,8 @@ Just build the UI component first, we will hook it up to RecipeForm later
 Great. Now let's include this CommentSection to the bottom of RecipeForm, and hook it with recipeWithSocial please.
 Don't implement the server actions yet.
 ---------
-
+Great, let's go ahead and implement posting of comment. Implement OnClick of the Post Comment button, which would insert the comment to recipe_comments table. There should be a validation on the button to check that the text box is not empty. 
+---------
 
 
 ------------------------------------------------------------

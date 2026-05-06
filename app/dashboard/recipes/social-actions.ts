@@ -51,3 +51,30 @@ export async function toggleRecipeLikeAction(recipeId: string) {
   revalidatePath(`/dashboard/recipes/${recipeId}`);
 }
 
+export async function addRecipeCommentAction(recipeId: string, comment: string) {
+  const text = String(comment ?? "").trim();
+  if (!text) {
+    return;
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const user = authData.user;
+
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  const { error } = await supabase.from("recipe_comments").insert({
+    recipe_id: recipeId,
+    user_id: user.id,
+    comment: text,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  revalidatePath(`/dashboard/recipes/${recipeId}`);
+}
+
