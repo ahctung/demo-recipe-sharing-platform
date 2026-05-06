@@ -161,6 +161,7 @@ export default async function DashboardPage({
                   </option>
                 ))}
               </select>
+              <select
                 name="difficulty"
                 defaultValue={difficultyRaw}
                 className="h-11 rounded-md border border-black/10 bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-black/20 dark:border-white/15 dark:focus:ring-white/20"
